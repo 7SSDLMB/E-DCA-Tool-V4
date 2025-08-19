@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base target="_top">
+    <!-- Updated Content Security Policy to allow YouTube and image hosting embeds -->
+    <meta http-equiv="Content-Security-Policy" content="frame-src https://www.youtube.com; img-src 'self' data: https://i.ibb.co https://placehold.co;">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Mali', cursive;
+            --bg-color: #FFFAEF; /* New background color */
+            --paper-bg: #ffffff;
+            --primary-accent: #ba68c8; /* Deeper pastel purple */
+            --secondary-accent: #f06292; /* Deeper pastel pink */
+            --submit-accent: #64b5f6; /* Pastel blue */
+            --text-dark: #4a235a; /* Dark purple */
+            --text-light: #7b1fa2;
+            --text-pink: #d81b60;
+            --text-body: #616161;
+            --border-color: #e1bee7;
+            --creamy-yellow: #FFFACD; /* Creamy yellow color */
+            --creamy-yellow-darker: #FFEBCD; /* Slightly darker creamy yellow for hover */
+            --navy-blue: #000080; /* Navy blue for key data */
+        }
+        .a4-paper {
+            background-color: var(--paper-bg);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .page {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .large-input {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border-width: 2px;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .large-input:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px rgba(186, 104, 200, 0.2);
+            caret-color: var(--primary-accent);
+        }
+        #infant-name-input::placeholder {
+            color: #6b7280; /* tailwind gray-500 */
+            font-style: italic;
+        }
+        .radio-custom {
+            transform: scale(1.5);
+            margin: 0 0.5rem;
+            accent-color: var(--primary-accent);
+        }
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: transform 0.1s ease-in-out, background-color 0.2s;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+        .select-all-btn {
+            background-color: var(--primary-accent);
+            color: white;
+        }
+        .deselect-all-btn {
+            background-color: var(--secondary-accent);
+            color: white;
+        }
+        
+        /* Custom style for the Dx editable div's superscript */
+        #dx-input sup {
+            font-size: 80%; /* Adjust size here */
+            position: relative;
+            top: -0.3em; /* Adjust vertical alignment */
+            left: 0.05em;
+        }
+        
+        .pma-mismatch, .ga-invalid, .input-invalid {
+            color: #E53E3E !important; /* red-600 */
+            font-weight: bold;
+        }
+        
+        .navy-text {
+            color: var(--navy-blue);
+        }
+
+        @media print {
+            body { background-color: #fff !important; }
+            .a4-paper { box-shadow: none; margin-bottom: 0; }
+            .page { display: block !important; animation: none; page-break-after: always; }
+            .page:last-child { page-break-after: auto; }
+            #page-navigation, #final-actions, .submit-modal, .details-modal, #validation-modal, #secondary-navigation, #topic-navigation { display: none !important; }
+            input, select, textarea, [contenteditable] { border: 1px solid #ccc !important; background-color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .radio-custom { -webkit-appearance: radio; -moz-appearance: radio; appearance: radio; }
+        }
+    </style>
+</head>
+<body class="text-gray-800" style="background-color: var(--bg-color);">
+
+    <div id="form-container" class="container mx-auto p-4 md:p-8">
+        <!-- Pages will be injected here by JavaScript -->
+    </div>
+
+    <!-- Page Navigation -->
+    <div id="page-navigation" class="container mx-auto px-4 md:px-8 pb-4 flex flex-col items-center space-y-2">
+        <span id="page-indicator" class="text-sm font-semibold" style="color: var(--text-dark);"></span>
+        <div class="flex justify-center items-center space-x-4">
+            <button id="prev-btn" onclick="navigatePage(-1)" class="action-btn text-white shadow-lg w-28 justify-center" style="background-color: var(--secondary-accent);">
+                Previous
+            </button>
+            <button id="next-btn" onclick="navigatePage(1)" class="action-btn text-white shadow-lg w-28 justify-center" style="background-color: var(--primary-accent);">
+                Next
+            </button>
+            <button id="last-page-btn-main" onclick="goToLastPage()" class="action-btn bg-gray-200 text-gray-700 w-28 justify-center">Last page</button>
+        </div>
+    </div>
+
+    <!-- Secondary Navigation -->
+    <div id="secondary-navigation" class="container mx-auto px-4 md:px-8 pb-4 flex justify-center items-center space-x-4">
+        <button id="home-btn" onclick="goToFirstPage()" class="action-btn bg-gray-200 text-gray-700">First Page</button>
+        <button onclick="goToLastPage()" class="action-btn bg-gray-200 text-gray-700">Last page</button>
+    </div>
+    
+    <!-- Topic Navigation -->
+     <div id="topic-navigation" class="container mx-auto px-4 md:px-8 pb-8 text-center text-sm" style="color: var(--submit-accent);">
+         <!-- Links will be injected by JavaScript -->
+     </div>
+
+
+    <!-- Final Action Buttons (Initially Hidden) -->
+    <div id="final-actions" class="hidden flex flex-col items-center gap-4 container mx-auto px-4 md:px-8 pb-8 text-center">
+        <div class="flex justify-center gap-4 w-full">
+            <button id="submit-button" onclick="submitForm()" class="action-btn text-white shadow-lg flex items-center gap-2" style="background-color: var(--submit-accent);">
+                Submit
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                </svg>
+            </button>
+            <button onclick="window.print()" class="action-btn text-white shadow-lg flex items-center gap-2" style="background-color: var(--primary-accent);">
+                Print / Save as PDF
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+        <div class="flex flex-wrap justify-center gap-4 w-full mt-4">
+            <button onclick="navigatePage(-1)" class="action-btn" style="background-color: var(--creamy-yellow); color: var(--text-dark);">
+                Return to Previous Page
+            </button>
+            <button onclick="goToFirstPage()" class="action-btn" style="background-color: var(--creamy-yellow); color: var(--text-dark);">
+                Return to First Page
+            </button>
+        </div>
+        <div id="topic-navigation-final" class="container mx-auto px-4 md:px-8 pt-4 pb-2 text-center text-sm" style="color: var(--submit-accent);">
+            <!-- Links will be injected by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Submit Modal -->
+    <div id="submit-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full" style="background-color: #e3f2fd;">
+                    <svg class="h-6 w-6" style="color: var(--submit-accent);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h3 id="modal-header-text" class="text-lg leading-6 font-medium text-gray-900">Form Submitted Successfully!</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500" id="modal-infant-name"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="ok-btn" class="px-4 py-2 text-white text-base font-medium rounded-md w-full shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2" style="background-color: var(--submit-accent);">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Details Modal for Goals and Considerations -->
+    <div id="details-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 id="modal-title" class="text-lg leading-6 font-bold" style="color: var(--text-dark);"></h3>
+                <div id="modal-content" class="mt-4 space-y-4 text-sm" style="color: var(--text-body);"></div>
+                <div class="mt-6 flex justify-between items-center">
+                    <label class="flex items-center text-sm p-2 rounded-md bg-pink-100 text-pink-700 cursor-pointer">
+                        <input type="checkbox" id="disable-popup-toggle-modal" class="mr-2 radio-custom" style="transform: scale(1.2);">
+                        <span class="whitespace-nowrap">Turn off pop-up page</span>
+                    </label>
+                    <button id="close-modal-btn" class="px-6 py-2 text-white text-base font-medium rounded-md shadow-sm hover:opacity-90" style="background-color: var(--secondary-accent);">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Modal -->
+    <div id="validation-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Incomplete Form</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500" id="validation-modal-text"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="validation-ok-btn" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT SECTION -->
+    <script type="module">
+        // --- IMPORTANT: PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT URL HERE ---
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaB3LkOHSQJIeGPUuwvKeRJz_hwbbwDUreuUMzZtFm8AZ62RWQwc0tRXiPuCiW_Lgv/exec';
+
+        // --- YOUR EXISTING APP DATA AND LOGIC ---
+        const checklistData = [
+            {
+                title_th: '1. การสัมผัสและการปฏิบัติการพยาบาล (Handling and Nursing Interventions)',
+                goal_th: 'เป้าหมาย : ให้การสัมผัสและการพยาบาลด้วยความนุ่มนวล เพื่อรักษาค่าสัญญาณชีพของทารกให้คงที่',
+                considerations_th: [
+                    'การควบคุมภาวะพฤติกรรมยังไม่สมบูรณ์',
+                    'ทนต่อการสัมผัสได้น้อย',
+                    'ระบบการทำงานของร่างกายยังไม่คงที่ เช่น ออกซิเจนในเลือดลดลง หัวใจเต้นช้าลง สีผิวเปลี่ยน'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'ให้การพยาบาลหลายอย่างพร้อมกัน (Cluster care) แต่หลีกเลี่ยงหัตถการที่ทำให้ทารกเครียดในเวลาเดียวกัน' },
+                    { th: 'ให้เวลาทารกฟื้นตัว (“Time out”) ระหว่างหัตถการ และประเมินพฤติกรรมความพร้อมของทารก เช่น สงบ ไม่ร้องไห้ สัญญาณชีพคงที่ ก่อนเริ่มหัตถการถัดไป' },
+                    { th: 'ใช้การเคลื่อนไหวที่ช้าและควบคุมได้เมื่อต้องสัมผัสทารก' },
+                    { th: 'หลีกเลี่ยงการเปลี่ยนท่าทางอย่างรวดเร็ว' },
+                    { th: 'ให้การพยุงร่างกายทารกระหว่างหัตถการ เช่น โอบหรือจัดท่าทารกให้แขนขางออยู่กึ่งกลางลำตัว' },
+                    { th: 'หลีกเลี่ยงการลูบหรือการตบ ซึ่งอาจกระตุ้นมากเกินไป' },
+                    { th: 'กำหนดเวลาทำหัตถการที่ไม่เร่งด่วนในช่วงเวลากลางวัน เช่น การชั่งน้ำหนัก การเปลี่ยนผ้าปูเตียง' }
+                ]
+            },
+            {
+                title_th: '2. การจัดท่าทางและพัฒนาการทางการเคลื่อนไหว (Positioning and Motor Development)',
+                goal_th: 'เป้าหมาย : ป้องกันหรือลดความผิดรูปของร่างกาย โดยจัดท่าทารกให้อยู่ในท่างอกึ่งกลางลำตัว รู้สึกปลอดภัย และสบาย',
+                considerations_th: [
+                    'กล้ามเนื้ออ่อนแรง การงอข้อต่อต่าง ๆ ลดลง การควบคุมท่าทางยังไม่ดี',
+                    'มีการสะดุ้ง เคลื่อนไหวแบบกระตุก ไม่ประสานกัน'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'ใช้เทคนิคการสร้างรัง (Nesting) เช่น การม้วนผ้าห่ม เพื่อส่งเสริมท่าทางงอแขนขาและอยู่ึ่งกลางลำตัว' },
+                    { th: 'ห่อตัว (Swaddling) ทารกขณะเคลื่อนย้าย เพื่อลดความเครียดและช่วยคงท่าทางที่เหมาะสม' },
+                    { th: 'จัดเปลี่ยนท่าทางอย่างสม่əเสมอ เพื่อส่งเสริมพัฒนาการเคลื่อนไหวที่สมมาตร ป้องกันการเกิดแผลกดทับ' },
+                    { th: 'เปิดโอกาสให้ทารกได้เคลื่อนไหวเองภายในขอบเขตที่นุ่มและปลอดภัย' },
+                    { th: 'หลีกเลี่ยงท่าทางที่มีการเหยียดเกินปกติ หรือท่าที่ไม่สมมาตร' }
+                ]
+            },
+            {
+                title_th: '3. แสงและการมองเห็น (Light and Vision)',
+                goal_th: 'เป้าหมาย : การจัดแสงสว่างให้เหมาะสม ลดผลกระทบจากสิ่งแวดล้อมภายนอกต่อพัฒนาการของระบบประสาทส่วนกลางของทารก',
+                considerations_th: [
+                    'การตอบสนองของรูม่านตาและกระบวนการมองเห็นยังไม่สมบูรณ์',
+                    'แสงสามารถกระตุ้นให้เกิดความเครียดทางสรีรวิทยาและพฤติกรรมได้'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'ลดความสว่างของแสงในสิ่งแวดล้อม โดยเฉพาะขณะให้การพยาบาล ไม่เกิน 60 ฟุตแรงเทียน หรือ 646 lux' },
+                    { th: 'ใช้ผ้าคลุมตู้ incubator เพื่อลดการสัมผัสกับแสงโดยรอบ' },
+                    { th: 'ป้องกันดวงตาทารกจากแสงจ้าในระหว่างหัตถการ' },
+                    { th: 'หลีกเลี่ยงสิ่งกระตุ้นทางสายตา เช่น ของเล่น ในแนวสายตาของทารกโดยตรง' },
+                    { th: 'ส่งเสริมวงจรกลางวัน-กลางคืนของแสง เพื่อสนับสนุนจังหวะชีวิตตามธรรมชาติ (หากปลอดภัย)' },
+                    { th: 'จัดชั่วโมงสงบ (Quiet time) อย่างน้อย 1-2 ชั่วโมง/วัน' }
+                ]
+            },
+            {
+                title_th: '4. เสียงและการได้ยิน (Sound and Hearing)',
+                goal_th: 'เป้าหมาย : ลดเสียงรบกวนภายนอกเพื่อป้องกันผลกระทบต่อพัฒนาการของระบบประสาทส่วนกลางของทารก',
+                considerations_th: [
+                    'โครงสร้างหูชั้นใน (Cochlea) เจริญสมบูรณ์แล้ว แต่การประมวลผลทางการได้ยินยังไม่สมบูรณ์',
+                    'เสียงรบกวนอาจก่อให้เกิดความเครียดหรือความไม่เสถียรทางสรีรวิทยา',
+                    'ทารกแสดงความชอบเสียงของมารดา'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'รักษาระดับเสียงรบกวนบริเวณข้างเตียงให้อยู่ในระดับต่ำ โดยไม่ควรเกิน 50 dB' },
+                    { th: 'พูดด้วยเสียงเบา และจำกัดการสนทนาใกล้ตู้อบ' },
+                    { th: 'ตั้งเสียงเตือนของเครื่องมอนิเตอร์ให้อยู่ในระดับที่ไม่ดังเกินไป และตอบสนองต่อสัญญาณเตือนโดยเร็ว' },
+                    { th: 'ปิดประตูตู้อบอย่างเบามือ หลีกเลี่ยงการใช้พื้นผิวของตู้อบเพื่อเขียนหรือวางของ' },
+                    { th: 'กำจัดเสียงพื้นหลัง เช่น ไม่เปิดวิทยุ ปิดอุปกรณ์ที่ไม่จำเป็น' },
+                    { th: 'ระบายน้ำในท่อเครื่องช่วยหายใจ/ CPAP อย่างสม่əเสมอ เพื่อป้องกันเสียงรบกวน' }
+                ]
+            },
+            {
+                title_th: '5. การควบคุมอุณหภูมิ (Thermoregulation)',
+                goal_th: 'เป้าหมาย : ส่งเสริมการจัดอุณหภูมิสิ่งแวดล้อมที่เหมาะสม เพื่อให้ทารกใช้พลังงานและออกซิเจนน้อยที่สุด',
+                considerations_th: [
+                    'ทารกมีศูนย์ควบคุมอุณหภูมิร่างกายที่สมองทำงานยังไม่สมบูรณ์',
+                    'ผิวหนังบาง ไขมันใต้ผิวหนังน้อย'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'ปรับตั้งอุณหภูมิตู้อบเหมาะสมตามน้ำหนักตัวและอายุของทารก (Neutral Thermal Environment: NTE)' },
+                    { th: 'ปรับอุณหภูมิสิ่งแวดล้อมให้อยู่ในช่วงที่เหมาะสม โดยมีค่าอยู่ระหว่าง 26-27 องศาเซลเซียส' },
+                    { th: 'ปิดประตู หน้าต่างตู้อบภายหลังทำหัตถการ และหลีกเลี่ยงการวางตู้อบบริเวณแอร์หรือลมพัดผ่าน' },
+                    { th: 'ป้องกันการสูญเสียความร้อนทั้ง 4 ทาง ประกอบด้วย การนำความร้อน การพาความร้อน การแผ่รังสีและการระเหย' }
+                ]
+            },
+            {
+                title_th: '6. การเพิ่มประสิทธิภาพด้านโภชนาการ (Optimizing Nutrition)',
+                goal_th: 'เป้าหมาย : ส่งเสริมโภชนาการที่ดีให้กับทารก สนับสนุนการได้รับนมแม่ตามความต้องการของทารกแต่ละคน',
+                considerations_th: [
+                    'ทารกมีความไวต่อการสัมผัสภายในช่องปากสูง',
+                    'ระบบทางเดินอาหารยังไม่สมบูรณ์ และยังไม่สามารถประสานการดูด การกลืนและการหายใจได้ดี',
+                    'น้ำนมแม่ช่วยส่งเสริมการพัฒนาของลำไส้ ภูมิคุ้มกันและการพัฒนาระบบประสาท',
+                    'การให้นมไม่เพียงแต่เป็นการบำรุงร่างกาย แต่ยังเป็นประสบการณ์ด้านพัฒนาการที่ควรปรับให้เหมาะสมเฉพาะรายและปราศจากความเครียด'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'ใช้น้ำนมแม่ เป็นทางเลือกแรกสำหรับการให้อาหารทางสายยาง' },
+                    { th: 'ส่งเสริมให้มารดาบีบเก็บน้ำนมตั้งแต่ระยะแรก และให้ความรู้เกี่ยวกับการเก็บและการจัดการน้ำนม' },
+                    { th: 'หลีกเลี่ยงการดูดเสมหะทางปากที่ไม่จำเป็น เพื่อปกป้องพัฒนาการของการทำงานกล้ามเนื้อช่องปาก' },
+                    { th: 'สนับสนุน non-nutritive sucking ระหว่างให้นมทางสายยาง เพื่อเตรียมความพร้อมในการกินทางปากในอนาคต' },
+                    { th: 'สังเกตและตอบสนองต่อสัญญาณความพร้อมในการกิน เช่น การหันศีรษะหาหัวนม (Rooting) หรือการเอามือเข้าปาก' }
+                ]
+            },
+            {
+                title_th: '7. การรับกลิ่นและรส (Smell and Taste)',
+                goal_th: 'เป้าหมาย : ส่งเสริมการได้รับกลิ่นและรสที่เหมาะสมแก่ทารก กระตุ้นการแสดงสัญญาณความหิว การดูด และความตื่นตัวของทารก',
+                considerations_th: [
+                    'ตัวรับกลิ่นและรสของทารกสามารถทำงานได้ตั้งแต่ระยะแรกของพัฒนาการ',
+                    'ทารกจะแสดงปฏิกิริยาความเครียดเมื่อได้รับกลิ่นที่ไม่พึงประสงค์หรือรุนแรง'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'ให้ทารกได้คุ้นเคยกับกลิ่นน้ำนมแม่ระหว่างการให้นม เช่น ใช้ผ้าก๊อซที่มีกลิ่นน้ำนมแม่วางใกล้ตัว' },
+                    { th: 'หลีกเลี่ยงการใช้ผลิตภัณฑ์ที่มีกลิ่นแรง เช่น น้ำหอม ใกล้ตัวทารก' },
+                    { th: 'เปิดขวดยาฆ่าเชื้อหรือแอลกอฮอล์ให้ห่างจากบริเวณตู้อบ' },
+                    { th: 'ให้ทารกดูดจุกนมหลอกที่จุ่มน้ำนมแม่ (Pacifier dips)' },
+                    { th: 'ใช้น้ำนมแม่ทำความสะอาดช่องปากทารก (Oral care)' }
+                ]
+            },
+            {
+                title_th: '8. การปกป้องและความสมบูรณ์ของผิวหนัง (Skin Protection and Integrity)',
+                goal_th: 'เป้าหมาย : ปกป้องผิวหนังของทารกแรกเกิด และ ส่งเสริมการรับรู้ทางสัมผัสผ่านผิวหนัง สนับสนุนพัฒนาการและความผูกพันทางอารมณ์',
+                considerations_th: [
+                    'ผิวหนังยังไม่สมบูรณ์ โดยเฉพาะอย่างยิ่งก่อนอายุครรภ์ 30 สัปดาห์',
+                    'มีความเสี่ยงสูงต่อการเกิดแผลและการสูญเสียน้ำผ่านผิวหนัง (Transepidermal water loss)'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'ใช้ผลิตภัณฑ์ที่ไม่ติดผิว หรือใช้ชนิดที่เป็นไฮโดรเจลเมื่อติดตั้งอุปกรณ์ทางการแพทย์' },
+                    { th: 'ลดการลอกเทปบ่อย ๆ ใช้ฟิล์มป้องกันผิวหนังเมื่อต้องการ' },
+                    { th: 'ลอกเทปโดยประคองผิวรอบข้าง แล้วดึงช้าๆ ในมุมต่ำ ขนานกับผิวหนัง' },
+                    { th: 'ประเมินผิวหนังและเปลี่ยนท่าทางทารกบ่อย ๆ เพื่อป้องกันแผลกดทับ' },
+                    { th: 'รักษาผิวหนังให้สะอาดและแห้ง หลีกเลี่ยงการถูแรง ๆ' },
+                    { th: 'ใช้ความชื้นในตู้อบที่เหมาะสมเพื่อช่วยรักษาความชุ่มชื้นของผิวหนัง (โดยเฉพาะทารก ELBW)' },
+                    { th: 'ทำความสะอาดอย่างอ่อนโยนขณะเปลี่ยนผ้าอ้อม โดยใช้น้ำอุ่นหรือผ้าเช็ดแบบ pH เป็นกลาง' }
+                ]
+            },
+            {
+                title_th: '9. การลดความเจ็บปวดและความเครียด (Pain and Stress Management)',
+                goal_th: 'เป้าหมาย : จัดการความปวดและลดความเครียดให้ทารกได้มากที่สุด ส่งเสริมให้ทารกสามารถรับมือและฟื้นตัวจากความเจ็บปวดและความเครียด',
+                considerations_th: [
+                    'ทารกเกิดก่อนกำหนดมีระบบประสาทยังไม่สมบูรณ์ แต่สามารถรับรู้ความเจ็บปวดได้',
+                    'สิ่งกระตุ้นที่ทำให้เกิดความเจ็บปวดหรือความเครียดอาจก่อให้เกิดความไม่เสถียรของร่างกาย เช่น หยุดหายใจ ชีพจรช้าลง รวมถึงส่งผลต่อพัฒนาการสมองและพฤติกรรมในระยะยาว',
+                    'ความเจ็บปวดซ้ำ ๆ หรือการจัดการที่ไม่เหมาะสม อาจรบกวนการนอน การกิน และการควบคุมตนเองของทารก'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'เฝ้าระวังและประเมินความเจ็บปวดโดยใช้เครื่องมือ NIPS หรือ PIPP-R' },
+                    { th: 'ใช้วิธีไม่ใช้ยาในการบรรเทาความเจ็บปวดระหว่างทำหัตถการ เช่น น้ำตาลซูโครส นมแม่ การโอบอุ้มร่างกาย (Containment) การห่อตัว (Swaddling) การดูดโดยไม่ให้อาหาร (Non-nutritive sucking)' },
+                    { th: 'สังเกตสัญญาณตอบสนองของทารก เพื่อลดการกระตุ้นมากเกินไป' },
+                    { th: 'บันทึกและประเมินซ้ำหลังจากได้รับหัตถการที่ก่อให้เกิดความเจ็บปวด' }
+                ]
+            },
+            {
+                title_th: '10. การมีส่วนร่วมของผู้ปกครอง (Parental Involvement)',
+                goal_th: 'เป้าหมาย : สนับสนุนบทบาทของพ่อแม่ในการดูแลทารก และส่งเสริมความผูกพันระหว่างพ่อแม่กับทารก',
+                considerations_th: [
+                    'การสร้างความผูกพันและการมีส่วนร่วมตั้งแต่ระยะแรก ช่วยส่งเสริมการพัฒนาระบบประสาทของทารก',
+                    'ผู้ปกครองต้องได้รับการสนับสนุนในการตีความพฤติกรรมของทารก'
+                ],
+                implication_th: 'ข้อเสนอแนะทางการพยาบาล (Nursing Implication)',
+                youtube_id: 'kJ0mzPed8dc', // Placeholder: Newborn Developmental Care
+                items: [
+                    { th: 'ให้ความรู้แก่ผู้ปกครองเกี่ยวกับสัญญาณและพฤติกรรมของทารกเกิดก่อนกำหนด' },
+                    { th: 'ส่งเสริมให้ผู้ปกครองมีส่วนร่วมในการดูแล เช่น การเปลี่ยนผ้าอ้อม การสัมผัส และการโอบอุ้มร่างกาย อย่างอ่อนโยน' },
+                    { th: 'สนับสนุนการทำ Kangaroo Care ตั้งแต่ระยะแรกและอย่างต่อเนื่อง' },
+                    { th: 'ให้ผู้ปกครองมีส่วนร่วมในการวางแผนการดูแลและการตัดสินใจ' },
+                    { th: 'ให้การสนับสนุนทางอารมณ์และให้ความรู้เกี่ยวกับการดูแลพัฒนาการของทารก' }
+                ]
+            }
+        ];
+        window.checklistData = checklistData; // Make checklistData globally accessible
+        const references = [
+            'Als, H. (1986). A synactive model of neonatal behavioral organization: framework for the assessment of neurobehavioral development in the premature infant and for support of infants and parents in the neonatal intensive care environment. Physical & Occupational Therapy in Pediatrics, 6(3-4), 3-53.',
+            'Altimier, L., & Phillips, R. M. (2013). The Neonatal Integrative Developmental Care Model: Seven Neuroprotective Core Measures for Family-Centered Developmental Care. Newborn and Infant Nursing Reviews, 13(1), 9–22. https://doi.org/10.1053/j.nainr.2012.12.002',
+            'Altimier, L., & Phillips, R. (2016). The Neonatal Integrative Developmental Care Model: Advanced Clinical Applications of the Seven Core Measures for Neuroprotective Family-centered Developmental Care. Newborn and Infant Nursing Reviews, 16(4), 230–244.',
+            'Cleveland Clinic. (2024). Fetal Development. Cleveland Clinic. https://my.clevelandclinic.org/health/articles/7247-fetal-development-stages-of-growth',
+            'Hadley, L. B., & West, D. (1999). Developmental and behavioral characteristics of preterm infants. NICU Ink Book Publishers',
+            'Shrestha, T. (2022). Developmental Supportive Care for Preterm Infants in Neonatal Intensive Care Units. Journal of Nursing Education of Nepal, 13(1), 117-122. https://doi.org/10.62143/vcqppg24',
+            'Starship Child Health (2024). Developmental Care: An Overview. https://starship.org.nz/guidelines/developmental-care-an-overview/',
+            'World Health Organization. (2022). WHO Recommendations for Care of the Preterm Or Low-birth-weight Infant. World Health Organization: WHO. https://iris.who.int/bitstream/handle/10665/363697/9789240058262-eng.pdf?sequence=1'
+        ];
+        const authors = `
+            <p><b>อ.ดร.ทิพวัลย์ ศรีเฉลิม อ.ดร.สุธาสินี แซ่หุง และ อ.ดร.สุกันยา กรรณแก้ว</b></p>
+            <p>อาจารย์สาขาวิชาการพยาบาลเด็ก โรงเรียนพยาบาลรามาธิบดี</p>
+            <p class="mt-2"><b>พว.ปัญญดา ชลสาคร</b></p>
+            <p>งานวิจัย นวัตกรรม การจัดการความรู้และสารสนเทศทางการพยาบาล</p>
+            <p>ฝ่ายการพยาบาล โรงพยาบาลรามาธิบดี</p>
+            <p class="mt-2"><b>พว.จิรนุช สิทธิเชียงพิณ</b></p>
+            <p>หน่วยบริบาลนมแม่และธนาคารนมแม่ งานการพยาบาลสนับสนุนการรักษา</p>
+            <p>ฝ่ายการพยาบาล โรงพยาบาลรามาธิบดี</p>
+            <p class="mt-2"><b>พว.กชกร เอกา</b></p>
+            <p>หอผู้ป่วยวิกฤตทารกแรกเกิด งานการพยาบาลผู้ป่วยวิกฤต</p>
+            <p>ฝ่ายการพยาบาล โรงพยาบาลรามาธิบดีจักกรีนฤบดินทร์</p>
+        `;
+
+        // Getting references to DOM elements
+        const formContainer = document.getElementById('form-container');
+        const submitModal = document.getElementById('submit-modal');
+        const okButton = document.getElementById('ok-btn');
+        const detailsModal = document.getElementById('details-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const validationModal = document.getElementById('validation-modal');
+        const validationModalText = document.getElementById('validation-modal-text');
+        const validationOkBtn = document.getElementById('validation-ok-btn');
+
+        let currentPage = 0;
+        let pages = [];
+        let lastAutoDx = ''; // Global tracker for auto-generated Dx text
+        let currentPrefix = ''; // Global tracker for infant name prefix
+
+        // Making functions available in the global scope so inline HTML onclick can find them
+        window.navigatePage = navigatePage;
+        window.goToFirstPage = goToFirstPage;
+        window.goToLastPage = goToLastPage;
+        window.resetForm = resetForm;
+        window.selectPageRadios = selectPageRadios;
+        window.deselectPageRadios = deselectPageRadios;
+        window.submitForm = submitForm;
+        window.showDetails = showDetails;
+        window.jumpToPage = jumpToPage;
+        window.resetDxField = resetDxField; // Make reset function global
+        window.fetchInfantData = fetchInfantData; // Make fetch function global
+
+        function buildPages() {
+            formContainer.innerHTML = '';
+            const page0 = document.createElement('div');
+            page0.className = 'page a4-paper relative';
+            page0.innerHTML = `
+                <div class="p-4 sm:p-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <label class="flex items-center text-sm p-2 rounded-md bg-pink-100 text-pink-700 cursor-pointer">
+                            <input type="checkbox" id="disable-popup-toggle" class="mr-2 radio-custom" style="transform: scale(1.2);">
+                            Turn off pop-up page
+                        </label>
+                        <button onclick="resetForm()" class="text-sm font-normal p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors shadow-sm">Reset Form</button>
+                    </div>
+                    <header class="text-center mb-8 p-4 rounded-lg" style="background-color: #E0FAED; border: 2px dashed white;">
+                        <img src="https://i.ibb.co/mrs7ch6h/Untitled-design-7.png" alt="Neonatal Care Logo" class="mx-auto h-20 sm:h-24 w-auto mb-4" onerror="this.onerror=null;this.src='https://placehold.co/200x100/e2e8f0/e2e8f0?text=Logo';">
+                        <h1 class="text-xl md:text-2xl font-bold" style="color: var(--primary-accent);">Developmental&nbsp;Care Checklist for Preterm&nbsp;Infants</h1>
+                        <p class="text-lg md:text-xl font-semibold" style="color: var(--text-pink);">แบบประเมินการดูแลเพื่อส่งเสริมพัฒนาการ<span style="white-space: nowrap;">ในทารกเกิดก่อนกำหนด</span></p>
+                    </header>
+                    <div class="mb-6 p-4 rounded-lg shadow-md" style="background-color: #FFFAEF;">
+                         <p class="font-semibold mb-2 text-center" style="color: var(--text-dark);">กรุณาเลือกหน่วยงานของท่าน</p>
+                         <div class="flex flex-wrap justify-center gap-4 text-sm">
+                             <label class="flex items-center p-3 rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow" style="background-color: #D0D4F1; color: var(--text-dark);">
+                                 <input type="radio" name="workplace" value="RA4SP" class="radio-custom">
+                                 <span class="ml-2 font-semibold">RA4SP</span>
+                             </label>
+                             <label class="flex items-center p-3 rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow" style="background-color: #D0D4F1; color: var(--text-dark);">
+                                 <input type="radio" name="workplace" value="SDNICU" class="radio-custom">
+                                 <span class="ml-2 font-semibold">SDNICU</span>
+                             </label>
+                             <label class="flex items-center p-3 rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow" style="background-color: #D0D4F1; color: var(--text-dark);">
+                                 <input type="radio" name="workplace" value="NICU CNMI" class="radio-custom">
+                                 <span class="ml-2 font-semibold">NICU CNMI</span>
+                             </label>
+                         </div>
+                    </div>
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="col-span-full md:col-span-1">
+                                <label class="block text-sm font-medium" style="color: var(--text-dark);">วันที่ประเมิน:</label>
+                                <div class="relative mt-1">
+                                    <input type="date" id="assessment-date-input" class="block w-full rounded-md shadow-sm sm:text-sm large-input navy-text pr-10" style="border-color: var(--border-color);">
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <svg class="h-5 w-5" style="color: var(--secondary-accent);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-span-full md:col-span-2">
+                                <div class="flex items-center space-x-2">
+                                    <label class="block text-sm font-medium" style="color: var(--text-dark);">ชื่อทารก:</label>
+                                    <span id="infant-status-msg" class="text-xs font-semibold"></span>
+                                    <span id="workplace-alert" class="text-xs font-semibold text-red-600 hidden">กรุณาเลือกหน่วยงานของท่านค่ะ</span>
+                                </div>
+                                <input type="text" id="infant-name-input" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm large-input" style="border-color: var(--border-color); color: #4B5563;" placeholder="กรุณาเลือกหน่วยงานของท่านจากด้านบนก่อนป้อนข้อมูลค่ะ" disabled>
+                            </div>
+                            <div class="col-span-full md:col-span-1">
+                                <label class="block text-sm font-medium" style="color: var(--text-dark);">อายุครรภ์:</label>
+                                <div class="flex space-x-2">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" id="ga-weeks-input" placeholder="Weeks" class="mt-1 block w-1/2 rounded-md shadow-sm sm:text-sm large-input navy-text" style="border-color: var(--border-color);">
+                                    <input type="text" inputmode="numeric" pattern="[0-9]*" id="ga-days-input" placeholder="Days" class="mt-1 block w-1/2 rounded-md shadow-sm sm:text-sm large-input navy-text" style="border-color: var(--border-color);">
+                                </div>
+                                <p id="ga-alert" class="text-xs text-red-600 mt-1 hidden">กรุณาตรวจสอบอายุครรภ์ให้ถูกต้อง</p>
+                                <p id="ga-type-alert" class="text-xs text-red-600 mt-1 hidden">กรุณากรอกตัวเลขเท่านั้น</p>
+                            </div>
+                            <div class="col-span-full md:col-span-1">
+                                <label class="block text-sm font-medium" style="color: var(--text-dark);">วันเดือนปีเกิด:</label>
+                                <div class="relative mt-1">
+                                    <input type="date" id="dob-input" class="block w-full rounded-md shadow-sm sm:text-sm large-input navy-text pr-10" style="border-color: var(--border-color);">
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <svg class="h-5 w-5" style="color: var(--secondary-accent);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p id="date-alert" class="text-xs text-red-600 mt-1 hidden">กรุณาตรวจสอบวันที่ให้ถูกต้อง</p>
+                            </div>
+                            <div class="col-span-full md:col-span-1">
+                                <label class="block text-sm font-medium" style="color: var(--text-dark);">อายุ:</label>
+                                <p id="age-display" class="mt-1 block w-full text-base font-semibold navy-text"></p>
+                            </div>
+                            <div class="col-span-full md:col-span-1">
+                                <label class="block text-sm font-medium" style="color: var(--text-dark);">PMA:</label>
+                                <p id="pma-display" class="mt-1 block w-full text-base font-semibold navy-text"></p>
+                            </div>
+                            <div class="col-span-full">
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="flex items-center gap-x-2">
+                                        <label class="block text-sm font-medium" style="color: var(--text-dark);">Dx.</label>
+                                        <span id="dx-check-mark" class="hidden text-green-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                        <span id="dx-cross-mark" class="hidden text-red-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    </div>
+                                    <button id="reset-dx-btn" onclick="resetDxField()" class="action-btn bg-gray-200 text-gray-700 text-xs px-3 py-1">Reset Dx.</button>
+                                </div>
+                                <p id="dx-alert" class="text-xs text-red-600 mb-1 hidden">กรุณาตรวจสอบข้อมูล Dx. อีกครั้ง หากไม่ถูกต้อง กด Reset Dx.</p>
+                                <div id="dx-input" contenteditable="true" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm large-input bg-white navy-text" style="border-color: var(--border-color); min-height: 80px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            formContainer.appendChild(page0);
+
+            checklistData.forEach((section, sectionIndex) => {
+                const pageEl = document.createElement('div');
+                pageEl.className = 'page a4-paper p-4 sm:p-8 relative';
+                const itemsHtml = section.items.map((item, itemIndex) => {
+                    const radioGroupName = `item-${sectionIndex}-${itemIndex}`;
+                    const noteId = `note-${sectionIndex}-${itemIndex}`;
+                    return `
+                        <div class="py-4 border-b border-gray-200">
+                            <p class="text-sm font-medium mb-3" style="color: var(--text-body);">${item.th}</p>
+                            <div class="flex items-center p-2 rounded-md bg-gray-100">
+                                <span class="text-sm font-medium mr-4 flex-shrink-0" style="color: var(--text-dark);">การปฏิบัติ:</span>
+                                <div class="flex items-center mr-6">
+                                    <span class="text-2xl mr-2" role="img" aria-label="Yes">😊</span>
+                                    <input name="${radioGroupName}" type="radio" class="radio-custom" value="Yes">
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-2xl mr-2" role="img" aria-label="No">😢</span>
+                                    <input name="${radioGroupName}" type="radio" class="radio-custom" value="No">
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label for="${noteId}" class="text-sm font-medium" style="color: var(--text-dark);">หมายเหตุ:</label>
+                                <input type="text" id="${noteId}" placeholder="..." class="mt-1 block w-full text-xs rounded-md shadow-sm large-input" style="border-color: var(--border-color); background-color: #fafafa;">
+                            </div>
+                        </div>`;
+                }).join('');
+                pageEl.innerHTML = `
+                    <div class="mb-6">
+                        <div onclick='showDetails(window.checklistData[${sectionIndex}])' class="flex items-center gap-x-2 cursor-pointer group">
+                            <h2 class="text-xl font-semibold group-hover:text-purple-700 transition-colors" style="color: var(--text-dark);">${section.title_th} <span class="text-xl">▶️</span></h2>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-4" style="color: var(--text-light);">${section.implication_th}</h4>
+                        <div class="flex gap-2 mb-4">
+                            <button onclick="selectPageRadios(${sectionIndex}, 'Yes')" class="action-btn select-all-btn flex items-center justify-center">
+                                <span class="mr-2">😊</span> Select All
+                            </button>
+                            <button onclick="deselectPageRadios(${sectionIndex})" class="action-btn deselect-all-btn flex items-center justify-center">
+                                <span class="mr-2">😊</span> Deselect All
+                            </button>
+                        </div>
+                        <div>${itemsHtml}</div>
+                    </div>`;
+                formContainer.appendChild(pageEl);
+            });
+
+            const finalPage = document.createElement('div');
+            finalPage.className = 'page a4-paper p-8';
+            const refList = references.map((ref, index) => `<li class="mb-2">${index + 1}. ${ref}</li>`).join('');
+            finalPage.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4 text-center" style="color: var(--text-dark);">References</h2>
+                <ol class="list-none text-xs" style="color: var(--text-body);">${refList}</ol>
+                <div class="mt-12 text-xs text-center" style="color: #4a5568;">
+                    <p class="font-semibold">จัดทำโดย</p>
+                    <div class="mt-2 text-center">${authors}</div>
+                </div>
+                `;
+            formContainer.appendChild(finalPage);
+
+            pages = document.querySelectorAll('.page');
+            showPage(currentPage);
+            
+            // --- LOGIC FOR WORKPLACE PREFIX ---
+            const workplaceRadios = document.querySelectorAll('input[name="workplace"]');
+            const infantNameInput = document.getElementById('infant-name-input');
+            const workplaceAlert = document.getElementById('workplace-alert');
+            const prefixes = {
+                'RA4SP': 'RA',
+                'SDNICU': 'SD',
+                'NICU CNMI': 'CN'
+            };
+
+            let currentPrefix = ''; // To track the current prefix
+            
+            workplaceRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    infantNameInput.disabled = false;
+                    workplaceAlert.classList.add('hidden');
+                    const selectedPrefix = prefixes[e.target.value] || '';
+                    const currentVal = infantNameInput.value;
+                    
+                    let userText = currentVal;
+                    if (currentPrefix && currentVal.startsWith(currentPrefix)) {
+                        userText = currentVal.substring(currentPrefix.length);
+                    }
+                    
+                    infantNameInput.value = selectedPrefix + userText;
+                    currentPrefix = selectedPrefix;
+                    infantNameInput.focus();
+                });
+            });
+
+            infantNameInput.addEventListener('click', () => {
+                if (infantNameInput.disabled) {
+                    workplaceAlert.classList.remove('hidden');
+                }
+            });
+            
+            infantNameInput.addEventListener('blur', (e) => fetchInfantData(e.target.value));
+            document.getElementById('ga-weeks-input').addEventListener('input', updateCalculatedFields);
+            document.getElementById('ga-days-input').addEventListener('input', updateCalculatedFields);
+            document.getElementById('dob-input').addEventListener('change', updateCalculatedFields);
+            document.getElementById('assessment-date-input').addEventListener('change', updateCalculatedFields);
+            document.getElementById('dx-input').addEventListener('input', updateCalculatedFields);
+            document.getElementById('assessment-date-input').valueAsDate = new Date();
+            updateCalculatedFields();
+
+            const topicNavContainer = document.getElementById('topic-navigation');
+            const topicNavFinalContainer = document.getElementById('topic-navigation-final');
+            let topicLinksHtml = '<span class="font-semibold mr-2" style="color: var(--text-dark);">ไปยังหัวข้อ:</span>';
+            checklistData.forEach((section, index) => {
+                topicLinksHtml += `<button id="topic-link-${index + 1}" onclick="jumpToPage(${index + 1})" class="hover:underline mx-1">${index + 1}</button>`;
+            });
+            topicNavContainer.innerHTML = topicLinksHtml;
+            if (topicNavFinalContainer) {
+                topicNavFinalContainer.innerHTML = topicLinksHtml;
+            }
+        }
+
+        function showPage(pageIndex) {
+            window.scrollTo(0, 0);
+            pages.forEach((page, index) => page.classList.toggle('active', index === pageIndex));
+            updateNavigation();
+            if (pageIndex > 0 && pageIndex <= checklistData.length) {
+                const disablePopupToggle = document.getElementById('disable-popup-toggle');
+                if (disablePopupToggle && !disablePopupToggle.checked) {
+                    const pageEl = pages[pageIndex];
+                    if (!pageEl.dataset.detailsShown) {
+                        showDetails(window.checklistData[pageIndex - 1]);
+                        pageEl.dataset.detailsShown = 'true';
+                    }
+                }
+            }
+        }
+
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const lastPageBtnMain = document.getElementById('last-page-btn-main');
+            const pageIndicator = document.getElementById('page-indicator');
+            const pageNav = document.getElementById('page-navigation');
+            const finalActions = document.getElementById('final-actions');
+            const topicNav = document.getElementById('topic-navigation');
+            const secondaryNav = document.getElementById('secondary-navigation');
+
+            pageIndicator.textContent = `Page ${currentPage + 1} of ${pages.length}`;
+            
+            if (currentPage === 0) {
+                pageNav.classList.remove('hidden');
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'inline-block';
+                lastPageBtnMain.style.display = 'inline-block';
+                topicNav.classList.remove('hidden');
+                secondaryNav.classList.add('hidden');
+                finalActions.classList.add('hidden');
+            } else if (currentPage > 0 && currentPage < pages.length - 1) {
+                pageNav.classList.remove('hidden');
+                prevBtn.style.display = 'inline-block';
+                nextBtn.style.display = 'inline-block';
+                lastPageBtnMain.style.display = 'none';
+                topicNav.classList.remove('hidden');
+                secondaryNav.classList.remove('hidden');
+                finalActions.classList.add('hidden');
+            } else {
+                pageNav.classList.add('hidden');
+                topicNav.classList.add('hidden');
+                secondaryNav.classList.add('hidden');
+                finalActions.classList.remove('hidden');
+            }
+
+            const topicLinks = topicNav.querySelectorAll('button');
+            topicLinks.forEach(link => link.classList.remove('font-bold'));
+
+            if (currentPage > 0 && currentPage <= checklistData.length) {
+                const activeLink = document.getElementById(`topic-link-${currentPage}`);
+                if (activeLink) {
+                    activeLink.classList.add('font-bold');
+                }
+            }
+        }
+
+        function showValidationModal(message) {
+            validationModalText.textContent = message;
+            validationModal.classList.remove('hidden');
+        }
+
+        function closeValidationModal() {
+            validationModal.classList.add('hidden');
+        }
+        validationOkBtn.addEventListener('click', closeValidationModal);
+
+        function navigatePage(direction) {
+            if (currentPage === 0 && direction > 0) {
+                const gaWeeksInput = document.getElementById('ga-weeks-input');
+                const gaDaysInput = document.getElementById('ga-days-input');
+                const isWeeksNumeric = /^\d*$/.test(gaWeeksInput.value);
+                const isDaysNumeric = /^\d*$/.test(gaDaysInput.value);
+                const gaWeeks = parseInt(gaWeeksInput.value) || 0;
+                const gaDays = parseInt(gaDaysInput.value) || 0;
+                const dobStr = document.getElementById('dob-input').value;
+                const assessmentDateStr = document.getElementById('assessment-date-input').value;
+                
+                const isGaInvalid = !isWeeksNumeric || !isDaysNumeric || gaWeeks < 0 || gaDays < 0 || gaDays > 6;
+                const isDateInvalid = dobStr && assessmentDateStr && new Date(assessmentDateStr) < new Date(dobStr);
+                const isDxAlertVisible = !document.getElementById('dx-alert').classList.contains('hidden');
+
+                if (isGaInvalid || isDateInvalid || isDxAlertVisible) {
+                    showValidationModal("กรุณาตรวจสอบข้อมูลให้ถูกต้อง");
+                    return;
+                }
+            }
+
+            if (direction > 0 && currentPage > 0 && currentPage <= window.checklistData.length) {
+                const sectionIndex = currentPage - 1;
+                const totalItemsOnPage = window.checklistData[sectionIndex].items.length;
+                
+                let checkedCount = 0;
+                for (let i = 0; i < totalItemsOnPage; i++) {
+                    const radioGroupName = `item-${sectionIndex}-${i}`;
+                    if (document.querySelector(`input[name="${radioGroupName}"]:checked`)) {
+                        checkedCount++;
+                    }
+                }
+
+                if (checkedCount < totalItemsOnPage) {
+                    showValidationModal("กรุณาเลือกให้ครบทุกข้อ");
+                    return;
+                }
+            }
+            
+            const newPage = currentPage + direction;
+            if (newPage >= 0 && newPage < pages.length) {
+                currentPage = newPage;
+                showPage(currentPage);
+            }
+        }
+        
+        function jumpToPage(pageNumber) {
+            currentPage = pageNumber;
+            showPage(currentPage);
+        }
+
+        function goToFirstPage() {
+            currentPage = 0;
+            showPage(currentPage);
+        }
+
+        function goToLastPage() {
+            currentPage = pages.length - 1;
+            showPage(currentPage);
+        }
+
+        function resetForm() {
+            document.getElementById('infant-name-input').value = '';
+            document.getElementById('infant-name-input').disabled = true;
+            document.getElementById('infant-status-msg').textContent = '';
+            document.getElementById('workplace-alert').classList.add('hidden');
+            document.getElementById('ga-weeks-input').value = '';
+            document.getElementById('ga-days-input').value = '';
+            document.getElementById('dob-input').value = '';
+            document.getElementById('dx-input').innerHTML = '';
+            lastAutoDx = '';
+            currentPrefix = '';
+            document.getElementById('assessment-date-input').valueAsDate = new Date();
+            document.getElementById('age-display').textContent = '';
+            document.getElementById('pma-display').textContent = '';
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+            document.querySelectorAll('input[type="text"][id^="note-"]').forEach(noteInput => noteInput.value = '');
+            document.getElementById('disable-popup-toggle').checked = false;
+            pages.forEach(page => page.dataset.detailsShown = '');
+            updateCalculatedFields();
+            goToFirstPage();
+        }
+
+        function selectPageRadios(sectionIndex, value) {
+            const targetPage = pages[sectionIndex + 1];
+            if (!targetPage) return;
+            const radioButtons = targetPage.querySelectorAll(`input[name^="item-${sectionIndex}-"][type="radio"][value="${value}"]`);
+            radioButtons.forEach(radio => radio.checked = true);
+        }
+
+        function deselectPageRadios(sectionIndex) {
+            const targetPage = pages[sectionIndex + 1];
+            if (!targetPage) return;
+            const radioButtons = targetPage.querySelectorAll(`input[name^="item-${sectionIndex}-"][type="radio"]`);
+            radioButtons.forEach(radio => radio.checked = false);
+        }
+
+        function calculateAge(dobStr, assessmentDateStr) {
+            const dob = new Date(dobStr);
+            const assessmentDate = new Date(assessmentDateStr);
+            let years = assessmentDate.getFullYear() - dob.getFullYear();
+            let months = assessmentDate.getMonth() - dob.getMonth();
+            let days = assessmentDate.getDate() - dob.getDate();
+            if (days < 0) {
+                months--;
+                days += new Date(assessmentDate.getFullYear(), assessmentDate.getMonth(), 0).getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            return { years, months, days };
+        }
+
+        function calculatePMA(gaWeeks, gaDays, dobStr, assessmentDateStr) {
+            const postnatalDays = Math.floor((new Date(assessmentDateStr) - new Date(dobStr)) / (1000 * 60 * 60 * 24));
+            const totalPmaDays = (parseInt(gaWeeks) * 7) + parseInt(gaDays) + postnatalDays;
+            return { weeks: Math.floor(totalPmaDays / 7), days: totalPmaDays % 7 };
+        }
+        
+        function updateCalculatedFields() {
+            const gaWeeksInput = document.getElementById('ga-weeks-input');
+            const gaDaysInput = document.getElementById('ga-days-input');
+            const dobStr = document.getElementById('dob-input').value;
+            const assessmentDateStr = document.getElementById('assessment-date-input').value;
+            const ageDisplayEl = document.getElementById('age-display');
+            const pmaDisplayEl = document.getElementById('pma-display');
+            const dxInput = document.getElementById('dx-input');
+            const dxCheckMark = document.getElementById('dx-check-mark');
+            const dxCrossMark = document.getElementById('dx-cross-mark');
+            const dxAlert = document.getElementById('dx-alert');
+            const resetDxBtn = document.getElementById('reset-dx-btn');
+            const gaAlert = document.getElementById('ga-alert');
+            const gaTypeAlert = document.getElementById('ga-type-alert');
+            const dateAlert = document.getElementById('date-alert');
+
+            gaAlert.classList.add('hidden');
+            gaTypeAlert.classList.add('hidden');
+            dateAlert.classList.add('hidden');
+            ageDisplayEl.classList.remove('text-red-600');
+            gaWeeksInput.classList.remove('input-invalid');
+            gaDaysInput.classList.remove('input-invalid');
+
+            const isWeeksNumeric = /^\d*$/.test(gaWeeksInput.value);
+            const isDaysNumeric = /^\d*$/.test(gaDaysInput.value);
+            if (!isWeeksNumeric || !isDaysNumeric) {
+                gaTypeAlert.classList.remove('hidden');
+            }
+
+            const gaWeeks = parseInt(gaWeeksInput.value) || 0;
+            const gaDays = parseInt(gaDaysInput.value) || 0;
+
+            if (gaWeeks < 0) {
+                gaAlert.classList.remove('hidden');
+                gaWeeksInput.classList.add('input-invalid');
+            }
+            if (gaDays < 0 || gaDays > 6) {
+                gaAlert.classList.remove('hidden');
+                gaDaysInput.classList.add('input-invalid');
+            }
+            if (dobStr && assessmentDateStr && new Date(assessmentDateStr) < new Date(dobStr)) {
+                dateAlert.classList.remove('hidden');
+                ageDisplayEl.innerHTML = '<span class="text-red-600 font-bold">ข้อมูลไม่ถูกต้อง</span>';
+                pmaDisplayEl.textContent = '';
+                if (dxInput.innerHTML.trim() === lastAutoDx.trim()) dxInput.innerHTML = '';
+                return;
+            }
+            
+            let calculatedPmaWeeks = 0;
+            let calculatedPmaDays = 0;
+
+            if (dobStr && assessmentDateStr && isWeeksNumeric && isDaysNumeric) {
+                const age = calculateAge(dobStr, assessmentDateStr);
+                let ageParts = [];
+                if (age.years > 0) ageParts.push(`${age.years} ปี`);
+                if (age.months > 0) ageParts.push(`${age.months} เดือน`);
+                if (age.days >= 0) ageParts.push(`${age.days} วัน`);
+                ageDisplayEl.textContent = ageParts.length ? ageParts.join(' ') : '0 วัน';
+                
+                const pma = calculatePMA(gaWeeks, gaDays, dobStr, assessmentDateStr);
+                pmaDisplayEl.textContent = `${pma.weeks} weeks ${pma.days} days`;
+                calculatedPmaWeeks = pma.weeks;
+                calculatedPmaDays = pma.days;
+
+                if (gaWeeks > 0) {
+                    let currentDxHTML = dxInput.innerHTML.trim();
+                    let gaDaysDisplay = gaDays > 0 ? `<sup>+${gaDays}</sup>` : '';
+                    let gaText = `Preterm ${gaWeeks}${gaDaysDisplay} wks`;
+                    if (gaDays > 6) {
+                        gaText = `<span class="ga-invalid">${gaText}</span>`;
+                    }
+
+                    let pmaText = '';
+                    if (pma.weeks > 0 || pma.days > 0) {
+                        let pmaDaysDisplay = pma.days > 0 ? `<sup>+${pma.days}</sup>` : '';
+                        pmaText = ` with PMA ${pma.weeks}${pmaDaysDisplay} wks`;
+                    }
+                    
+                    const newAutoDx = `${gaText}${pmaText} with `;
+
+                    if (currentDxHTML === '' || currentDxHTML === lastAutoDx) {
+                        dxInput.innerHTML = newAutoDx;
+                        lastAutoDx = newAutoDx;
+                    }
+                } else if (ageDisplayEl.textContent && (!gaWeeksInput.value || gaWeeks === 0)) {
+                    pmaDisplayEl.innerHTML = '<span class="text-red-600 font-bold">กรุณากรอกข้อมูลอายุครรภ์</span>';
+                    pmaDisplayEl.classList.remove('navy-text');
+                } else {
+                     if (dxInput.innerHTML.trim() === lastAutoDx) {
+                         dxInput.innerHTML = '';
+                         lastAutoDx = '';
+                       }
+                }
+
+            } else {
+                ageDisplayEl.textContent = '';
+                pmaDisplayEl.textContent = '';
+                if (dxInput.innerHTML.trim() === lastAutoDx) {
+                    dxInput.innerHTML = '';
+                    lastAutoDx = '';
+                }
+            }
+
+            const dxText = dxInput.innerText;
+
+            if (dxText === '') {
+                dxCheckMark.classList.add('hidden');
+                dxCrossMark.classList.add('hidden');
+                dxAlert.classList.add('hidden');
+                resetDxBtn.style.backgroundColor = '';
+                return;
+            }
+
+            const pmaInDxMatch = dxText.match(/with PMA (\d+)/);
+            const pmaInDxWeeks = pmaInDxMatch ? parseInt(pmaInDxMatch[1]) : null;
+            
+            const pmaDaysInDxMatch = dxInput.innerHTML.match(/with PMA \d+<sup>\+(\d)<\/sup> wks/);
+            const pmaInDxDays = pmaDaysInDxMatch ? parseInt(pmaDaysInDxMatch[1]) : 0;
+            
+            const isPmaMismatched = pmaInDxWeeks !== null && (pmaInDxWeeks !== calculatedPmaWeeks || pmaInDxDays !== calculatedPmaDays);
+            const isGaInDxInvalid = dxInput.querySelector('.ga-invalid');
+
+            const isDxValid = gaWeeks > 0 && !isGaInDxInvalid && !isPmaMismatched;
+
+            dxCheckMark.classList.toggle('hidden', !isDxValid);
+            dxCrossMark.classList.toggle('hidden', isDxValid);
+            dxAlert.classList.add('hidden'); 
+
+            if (!isDxValid && gaWeeks > 0) {
+                 if (isGaInDxInvalid) {
+                    dxAlert.innerText = "กรุณาแก้ไขอายุครรภ์ให้ถูกต้อง และกด Reset Dx.";
+                    dxAlert.classList.remove('hidden');
+                } else if (isPmaMismatched) {
+                    dxAlert.innerText = "กรุณาตรวจสอบข้อมูล Dx. อีกครั้ง หากไม่ถูกต้อง กด Reset Dx.";
+                    dxAlert.classList.remove('hidden');
+                }
+            }
+
+            if (isDxValid) {
+                resetDxBtn.style.backgroundColor = '#A7F3D0'; // Light green
+                const mismatchSpan = dxInput.querySelector('.pma-mismatch');
+                if (mismatchSpan) {
+                    mismatchSpan.outerHTML = mismatchSpan.innerHTML;
+                }
+            } else {
+                resetDxBtn.style.backgroundColor = ''; // Default color
+                if (isPmaMismatched) {
+                    const pmaRegex = /(with PMA \d+(<sup>\+\d<\/sup>)? wks)/;
+                    if (dxInput.innerHTML.match(pmaRegex) && !dxInput.querySelector('.pma-mismatch')) {
+                        dxInput.innerHTML = dxInput.innerHTML.replace(pmaRegex, `<span class="pma-mismatch">$1</span>`);
+                    }
+                }
+            }
+        }
+
+        function resetDxField() {
+            const dxInput = document.getElementById('dx-input');
+            const currentText = dxInput.innerText;
+            const lastAutoDxPlainText = lastAutoDx.replace(/<[^>]*>/g, '').trim();
+            
+            let userAddedText = '';
+            if (currentText.startsWith(lastAutoDxPlainText)) {
+                userAddedText = currentText.substring(lastAutoDxPlainText.length);
+            }
+
+            lastAutoDx = '';
+            dxInput.innerHTML = '';
+            updateCalculatedFields(); // This will repopulate the auto part and set the new lastAutoDx
+            
+            // Append the user's text back
+            if (userAddedText.trim() !== '') {
+                 dxInput.innerHTML += userAddedText;
+            }
+            updateCalculatedFields(); // Rerun validation on the final combined text
+        }
+
+        // --- UPDATED SUBMIT FUNCTION WITH NEW VALIDATIONS AND PROPER FETCH ---
+        async function submitForm() {
+            // 1. Checklist Validation (Topics 1-10)
+            const incompletePages = [];
+            window.checklistData.forEach((section, sectionIndex) => {
+                let isPageComplete = true;
+                for (let itemIndex = 0; itemIndex < section.items.length; itemIndex++) {
+                    const radioGroupName = `item-${sectionIndex}-${itemIndex}`;
+                    const selectedRadio = document.querySelector(`input[name="${radioGroupName}"]:checked`);
+                    if (!selectedRadio) {
+                        isPageComplete = false;
+                        break; // No need to check other items on this page
+                    }
+                }
+                if (!isPageComplete) {
+                    incompletePages.push(sectionIndex + 1); // Add human-readable topic number (1-10)
+                }
+            });
+
+            if (incompletePages.length > 0) {
+                showValidationModal(`กรุณาตรวจสอบหัวข้อที่ ${incompletePages.join(', ')} อีกครั้งค่ะ`);
+                return; // Stop submission
+            }
+
+            // 2. Workplace Validation
+            const selectedWorkplace = document.querySelector('input[name="workplace"]:checked');
+            if (!selectedWorkplace) {
+                showValidationModal('กรุณาเลือกหน่วยงานของท่านค่ะ');
+                return; // Stop submission
+            }
+
+            // If all validations pass, proceed with submission
+            const submitButton = document.getElementById('submit-button');
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Submitting...';
+
+            const infantName = document.getElementById('infant-name-input').value;
+            const gaWeeks = parseInt(document.getElementById('ga-weeks-input').value) || 0;
+            const gaDays = parseInt(document.getElementById('ga-days-input').value) || 0;
+            const dob = document.getElementById('dob-input').value;
+            const fullDx = document.getElementById('dx-input').innerText;
+            
+            const formData = {
+                infantName: infantName,
+                assessmentDate: document.getElementById('assessment-date-input').value,
+                gestationalAgeWeeksInput: gaWeeks,
+                gestationalAgeDaysInput: gaDays,
+                dateOfBirth: dob,
+                calculatedAgeDisplay: document.getElementById('age-display').textContent,
+                calculatedPMADisplay: document.getElementById('pma-display').textContent,
+                dx: fullDx,
+                workplace: selectedWorkplace.value,
+                checklist: []
+            };
+
+            window.checklistData.forEach((section, sectionIndex) => {
+                const sectionData = { title_th: section.title_th, items: [] };
+                section.items.forEach((item, itemIndex) => {
+                    const radioGroupName = `item-${sectionIndex}-${itemIndex}`;
+                    const selectedRadio = document.querySelector(`input[name="${radioGroupName}"]:checked`);
+                    const noteInput = document.getElementById(`note-${sectionIndex}-${itemIndex}`);
+                    sectionData.items.push({
+                        th: item.th,
+                        value: selectedRadio ? selectedRadio.value : '',
+                        note: noteInput ? noteInput.value : ''
+                    });
+                });
+                formData.checklist.push(sectionData);
+            });
+
+            // Use fetch to send data to the Google Apps Script Web App URL
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Use 'no-cors' to prevent CORS errors from Google Script redirects
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(() => {
+                // With 'no-cors', we can't read the response, so we assume success if the request doesn't throw an error.
+                console.log('Submission request sent to Google Sheet.');
+                document.getElementById('modal-header-text').textContent = "Form Submitted Successfully!";
+                const modalText = document.getElementById('modal-infant-name');
+                modalText.textContent = formData.infantName ? `Checklist for ${formData.infantName} has been sent!` : 'Checklist has been sent!';
+            })
+            .catch(error => {
+                console.error('Error submitting to Google Sheet:', error);
+                document.getElementById('modal-header-text').textContent = "Submission Failed";
+                document.getElementById('modal-infant-name').textContent = `An error occurred. Please check the browser console for details.`;
+            })
+            .finally(() => {
+                submitModal.classList.remove('hidden');
+                submitButton.disabled = false;
+                submitButton.innerHTML = `
+                    Submit
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>`;
+            });
+        }
+
+
+        function closeModal() {
+            submitModal.classList.add('hidden');
+        }
+        okButton.addEventListener('click', closeModal);
+
+        function showDetails(sectionData) {
+            if (!sectionData) return;
+            modalTitle.textContent = sectionData.title_th;
+            const considerationsList = sectionData.considerations_th.map(con => `<li>- ${con}</li>`).join('');
+            const youtubeEmbedHtml = sectionData.youtube_id ? `
+                <div class="mt-4">
+                    <iframe class="w-full aspect-video rounded-lg" src="https://www.youtube.com/embed/${sectionData.youtube_id}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                </div>` : '';
+            modalContent.innerHTML = `
+                <div id="modal-text-content">
+                    <div class="p-4 rounded-lg" style="background-color: #fcf4f7;"><h4 class="font-bold" style="color: var(--text-light);">เป้าหมาย (Goal)</h4><p class="mt-1">${sectionData.goal_th}</p></div>
+                    <div class="mt-4 p-4 rounded-lg" style="background-color: #fcf4f7;"><h4 class="font-bold" style="color: var(--text-light);">ข้อควรพิจารณาตามพัฒนาการของทารก (Considerations)</h4><ul class="list-none mt-2 space-y-1">${considerationsList}</ul></div>
+                </div>
+                ${youtubeEmbedHtml}`;
+            
+            const mainToggle = document.getElementById('disable-popup-toggle');
+            const modalToggle = document.getElementById('disable-popup-toggle-modal');
+            modalToggle.checked = mainToggle.checked;
+
+            if (!modalToggle.dataset.listenerAttached) {
+                modalToggle.addEventListener('change', function() {
+                    mainToggle.checked = this.checked;
+                });
+                modalToggle.dataset.listenerAttached = 'true';
+            }
+            
+            detailsModal.classList.remove('hidden');
+        }
+
+        function closeDetailsModal() {
+            detailsModal.classList.add('hidden');
+            window.scrollTo(0, 0); // Scroll to top
+        }
+        closeModalBtn.addEventListener('click', closeDetailsModal);
+        detailsModal.addEventListener('click', (event) => {
+            if (event.target === detailsModal) closeDetailsModal();
+        });
+
+        // --- FETCH INFANT DATA FROM GOOGLE SHEETS ---
+        async function fetchInfantData(infantName) {
+            const statusMsgEl = document.getElementById('infant-status-msg');
+            if (!infantName || infantName.trim() === '') {
+                statusMsgEl.textContent = '';
+                return;
+            }
+
+            const infantNameInput = document.getElementById('infant-name-input');
+            infantNameInput.disabled = true;
+            infantNameInput.style.backgroundColor = '#f3f4f6'; // Gray out input
+            statusMsgEl.textContent = 'Checking...';
+            statusMsgEl.className = 'text-xs font-semibold text-blue-500';
+            
+            const dxInput = document.getElementById('dx-input');
+            const fetchUrl = `${APPS_SCRIPT_URL}?infantName=${encodeURIComponent(infantName)}`;
+
+            try {
+                const response = await fetch(fetchUrl);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const data = await response.json();
+
+                if (data && data.found) {
+                    console.log("Found infant data in Google Sheets:", data);
+                    statusMsgEl.textContent = 'มีข้อมูล';
+                    statusMsgEl.className = 'text-xs font-semibold text-green-600';
+                    
+                    document.getElementById('ga-weeks-input').value = data.gestationalAgeWeeks || '';
+                    document.getElementById('ga-days-input').value = data.gestationalAgeDays || '';
+                    document.getElementById('dob-input').value = data.dateOfBirth || '';
+                    
+                    dxInput.innerHTML = '';
+                    lastAutoDx = '';
+
+                    updateCalculatedFields(); 
+                    
+                    const autoGeneratedPart = dxInput.innerHTML;
+                    dxInput.innerHTML = autoGeneratedPart + (data.diagnosis || '');
+                    
+                    updateCalculatedFields();
+
+                } else {
+                    console.log("No such infant in Google Sheets!");
+                    statusMsgEl.textContent = 'ไม่พบข้อมูล';
+                    statusMsgEl.className = 'text-xs font-semibold text-red-600';
+
+                    // Clear fields if no data is found
+                    document.getElementById('ga-weeks-input').value = '';
+                    document.getElementById('ga-days-input').value = '';
+                    document.getElementById('dob-input').value = '';
+                    dxInput.innerHTML = '';
+                    lastAutoDx = '';
+                    updateCalculatedFields();
+                }
+            } catch (error) {
+                console.error("Error fetching infant data from Google Sheets:", error);
+                statusMsgEl.textContent = 'Error!';
+                statusMsgEl.className = 'text-xs font-semibold text-red-600';
+                showValidationModal('Could not retrieve data. Please check the console.');
+            } finally {
+                infantNameInput.disabled = false;
+                infantNameInput.style.backgroundColor = ''; // Restore input color
+            }
+        }
+
+        // Initial setup when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+             buildPages();
+        });
+    </script>
+
+</body>
+</html>
