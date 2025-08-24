@@ -60,7 +60,7 @@
             font-style: italic;
         }
         .radio-custom {
-            transform: scale(1.5);
+            transform: scale(1.3);
             margin: 0 0.5rem;
             accent-color: var(--primary-accent);
         }
@@ -100,13 +100,21 @@
         .navy-text {
             color: var(--navy-blue);
         }
+        .green-text {
+            color: #16a34a; /* Tailwind green-600 */
+            font-weight: bold;
+        }
+        .red-text {
+            color: #dc2626; /* Tailwind red-600 */
+            font-weight: bold;
+        }
 
         @media print {
             body { background-color: #fff !important; }
             .a4-paper { box-shadow: none; margin-bottom: 0; }
             .page { display: block !important; animation: none; page-break-after: always; }
             .page:last-child { page-break-after: auto; }
-            #page-navigation, #final-actions, .submit-modal, .details-modal, #validation-modal, #secondary-navigation, #topic-navigation { display: none !important; }
+            #page-navigation, #final-actions, .submit-modal, .details-modal, #validation-modal, #infant-name-info-modal, #generic-info-modal, #secondary-navigation, #topic-navigation, #update-btn-container { display: none !important; }
             input, select, textarea, [contenteditable] { border: 1px solid #ccc !important; background-color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .radio-custom { -webkit-appearance: radio; -moz-appearance: radio; appearance: radio; }
         }
@@ -236,10 +244,59 @@
         </div>
     </div>
 
+    <!-- Infant Name Info Modal -->
+    <div id="infant-name-info-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full" style="background-color: #e3f2fd;">
+                    <svg class="h-6 w-6" style="color: var(--submit-accent);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">คำแนะนำ</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-600 text-left">
+                        กรุณาเลือกหน่วยงานของท่าน จะปรากฎอักษรย่อ 2 หลักโดยอัตโนมัติตามหน่วยงานที่เลือก จากนั้นจึงป้อนข้อมูลเลข <b class="navy-text">HN 4 หลักสุดท้าย เช่น CN1234</b>
+                        <br><br>
+                        เมื่อกรอกข้อมูลชื่อทารกเสร็จเรียบร้อย ให้กด Enter หรือคลิกที่ว่างและรอสักครู่ ระบบจะค้นหาข้อมูลผู้ป่วยเดิม หากพบข้อมูลจะแสดงข้อความ <b class="green-text">"มีข้อมูลเดิม"</b> หากไม่พบข้อมูล จะแสดง <b class="red-text">"ไม่พบข้อมูลเดิม"</b> ให้ป้อนข้อมูลเพื่อประเมินผู้ป่วยรายใหม่
+                    </p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="info-modal-close-btn" class="px-4 py-2 text-white text-base font-medium rounded-md w-full shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2" style="background-color: var(--submit-accent);">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Info Modal -->
+    <div id="generic-info-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full" style="background-color: #e3f2fd;">
+                    <svg class="h-6 w-6" style="color: var(--submit-accent);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">คำแนะนำ</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p id="generic-info-modal-text" class="text-sm text-gray-600"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="generic-info-modal-close-btn" class="px-4 py-2 text-white text-base font-medium rounded-md w-full shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2" style="background-color: var(--submit-accent);">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- SCRIPT SECTION -->
     <script type="module">
         // --- IMPORTANT: PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT URL HERE ---
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaB3LkOHSQJIeGPUuwvKeRJz_hwbbwDUreuUMzZtFm8AZ62RWQwc0tRXiPuCiW_Lgv/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_QJmBrbMwyyK4aL466FNCYT3ewuNOll0jmbgjNs-ruCWvUh45wCxOc9ukXaajKZr7/exec';
 
         // --- YOUR EXISTING APP DATA AND LOGIC ---
         const checklistData = [
@@ -275,7 +332,7 @@
                 items: [
                     { th: 'ใช้เทคนิคการสร้างรัง (Nesting) เช่น การม้วนผ้าห่ม เพื่อส่งเสริมท่าทางงอแขนขาและอยู่ึ่งกลางลำตัว' },
                     { th: 'ห่อตัว (Swaddling) ทารกขณะเคลื่อนย้าย เพื่อลดความเครียดและช่วยคงท่าทางที่เหมาะสม' },
-                    { th: 'จัดเปลี่ยนท่าทางอย่างสม่əเสมอ เพื่อส่งเสริมพัฒนาการเคลื่อนไหวที่สมมาตร ป้องกันการเกิดแผลกดทับ' },
+                    { th: 'จัดเปลี่ยนท่าทางอย่างสม่ำเสมอ เพื่อส่งเสริมพัฒนาการเคลื่อนไหวที่สมมาตร ป้องกันการเกิดแผลกดทับ' },
                     { th: 'เปิดโอกาสให้ทารกได้เคลื่อนไหวเองภายในขอบเขตที่นุ่มและปลอดภัย' },
                     { th: 'หลีกเลี่ยงท่าทางที่มีการเหยียดเกินปกติ หรือท่าที่ไม่สมมาตร' }
                 ]
@@ -314,7 +371,7 @@
                     { th: 'ตั้งเสียงเตือนของเครื่องมอนิเตอร์ให้อยู่ในระดับที่ไม่ดังเกินไป และตอบสนองต่อสัญญาณเตือนโดยเร็ว' },
                     { th: 'ปิดประตูตู้อบอย่างเบามือ หลีกเลี่ยงการใช้พื้นผิวของตู้อบเพื่อเขียนหรือวางของ' },
                     { th: 'กำจัดเสียงพื้นหลัง เช่น ไม่เปิดวิทยุ ปิดอุปกรณ์ที่ไม่จำเป็น' },
-                    { th: 'ระบายน้ำในท่อเครื่องช่วยหายใจ/ CPAP อย่างสม่əเสมอ เพื่อป้องกันเสียงรบกวน' }
+                    { th: 'ระบายน้ำในท่อเครื่องช่วยหายใจ/ CPAP อย่างสม่ำเสมอ เพื่อป้องกันเสียงรบกวน' }
                 ]
             },
             {
@@ -464,7 +521,7 @@
         let pages = [];
         let lastAutoDx = ''; // Global tracker for auto-generated Dx text
         let currentPrefix = ''; // Global tracker for infant name prefix
-
+        
         // Making functions available in the global scope so inline HTML onclick can find them
         window.navigatePage = navigatePage;
         window.goToFirstPage = goToFirstPage;
@@ -477,6 +534,9 @@
         window.jumpToPage = jumpToPage;
         window.resetDxField = resetDxField; // Make reset function global
         window.fetchInfantData = fetchInfantData; // Make fetch function global
+        window.updateInfantData = updateInfantData; // Make update function global
+        window.showInfantNameInfo = showInfantNameInfo; // Make info function global
+        window.showInfoModal = showInfoModal; // Make generic info function global
 
         function buildPages() {
             formContainer.innerHTML = '';
@@ -485,7 +545,7 @@
             page0.innerHTML = `
                 <div class="p-4 sm:p-8">
                     <div class="flex justify-between items-center mb-4">
-                        <label class="flex items-center text-sm p-2 rounded-md bg-pink-100 text-pink-700 cursor-pointer">
+                         <label class="flex items-center text-sm p-2 rounded-md bg-pink-100 text-pink-700 cursor-pointer">
                             <input type="checkbox" id="disable-popup-toggle" class="mr-2 radio-custom" style="transform: scale(1.2);">
                             Turn off pop-up page
                         </label>
@@ -502,6 +562,10 @@
                              <label class="flex items-center p-3 rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow" style="background-color: #D0D4F1; color: var(--text-dark);">
                                  <input type="radio" name="workplace" value="RA4SP" class="radio-custom">
                                  <span class="ml-2 font-semibold">RA4SP</span>
+                             </label>
+                             <label class="flex items-center p-3 rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow" style="background-color: #D0D4F1; color: var(--text-dark);">
+                                 <input type="radio" name="workplace" value="RA8IC" class="radio-custom">
+                                 <span class="ml-2 font-semibold">RA8IC</span>
                              </label>
                              <label class="flex items-center p-3 rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow" style="background-color: #D0D4F1; color: var(--text-dark);">
                                  <input type="radio" name="workplace" value="SDNICU" class="radio-custom">
@@ -527,15 +591,34 @@
                                 </div>
                             </div>
                             <div class="col-span-full md:col-span-2">
-                                <div class="flex items-center space-x-2">
-                                    <label class="block text-sm font-medium" style="color: var(--text-dark);">ชื่อทารก:</label>
-                                    <span id="infant-status-msg" class="text-xs font-semibold"></span>
-                                    <span id="workplace-alert" class="text-xs font-semibold text-red-600 hidden">กรุณาเลือกหน่วยงานของท่านค่ะ</span>
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center space-x-2">
+                                        <label class="block text-sm font-medium" style="color: var(--text-dark);">ชื่อทารก:</label>
+                                        <svg onclick="showInfantNameInfo()" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400 cursor-pointer hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span id="infant-status-msg" class="text-xs font-semibold"></span>
+                                        <span id="workplace-alert" class="text-xs font-semibold text-red-600 hidden">กรุณาเลือกหน่วยงานของท่านค่ะ</span>
+                                    </div>
+                                    <div id="update-btn-container" class="hidden">
+                                        <button id="update-btn" onclick="updateInfantData()" class="action-btn bg-blue-500 text-white font-bold text-xs px-3 py-1 flex items-center gap-1">
+                                            <span>Update</span>
+                                            <svg id="update-check-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                                 <input type="text" id="infant-name-input" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm large-input" style="border-color: var(--border-color); color: #4B5563;" placeholder="กรุณาเลือกหน่วยงานของท่านจากด้านบนก่อนป้อนข้อมูลค่ะ" disabled>
                             </div>
                             <div class="col-span-full md:col-span-1">
-                                <label class="block text-sm font-medium" style="color: var(--text-dark);">อายุครรภ์:</label>
+                                <div class="flex items-center space-x-2">
+                                    <label class="block text-sm font-medium" style="color: var(--text-dark);">อายุครรภ์:</label>
+                                    <svg onclick="showInfoModal('ga')" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400 cursor-pointer hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span id="ga-prompt-alert" class="text-xs font-semibold text-red-600 hidden">กรุณาป้อนข้อมูลอายุครรภ์</span>
+                                </div>
                                 <div class="flex space-x-2">
                                     <input type="text" inputmode="numeric" pattern="[0-9]*" id="ga-weeks-input" placeholder="Weeks" class="mt-1 block w-1/2 rounded-md shadow-sm sm:text-sm large-input navy-text" style="border-color: var(--border-color);">
                                     <input type="text" inputmode="numeric" pattern="[0-9]*" id="ga-days-input" placeholder="Days" class="mt-1 block w-1/2 rounded-md shadow-sm sm:text-sm large-input navy-text" style="border-color: var(--border-color);">
@@ -544,7 +627,10 @@
                                 <p id="ga-type-alert" class="text-xs text-red-600 mt-1 hidden">กรุณากรอกตัวเลขเท่านั้น</p>
                             </div>
                             <div class="col-span-full md:col-span-1">
-                                <label class="block text-sm font-medium" style="color: var(--text-dark);">วันเดือนปีเกิด:</label>
+                                <div class="flex items-center space-x-2">
+                                    <label class="block text-sm font-medium" style="color: var(--text-dark);">วันเดือนปีเกิด:</label>
+                                    <span id="dob-prompt-alert" class="text-xs font-semibold text-red-600 hidden">กรุณาป้อนข้อมูลวันเดือนปีเกิด</span>
+                                </div>
                                 <div class="relative mt-1">
                                     <input type="date" id="dob-input" class="block w-full rounded-md shadow-sm sm:text-sm large-input navy-text pr-10" style="border-color: var(--border-color);">
                                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -567,6 +653,9 @@
                                 <div class="flex justify-between items-center mb-1">
                                     <div class="flex items-center gap-x-2">
                                         <label class="block text-sm font-medium" style="color: var(--text-dark);">Dx.</label>
+                                        <svg onclick="showInfoModal('dx')" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400 cursor-pointer hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
                                         <span id="dx-check-mark" class="hidden text-green-500">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -597,15 +686,21 @@
                     return `
                         <div class="py-4 border-b border-gray-200">
                             <p class="text-sm font-medium mb-3" style="color: var(--text-body);">${item.th}</p>
-                            <div class="flex items-center p-2 rounded-md bg-gray-100">
-                                <span class="text-sm font-medium mr-4 flex-shrink-0" style="color: var(--text-dark);">การปฏิบัติ:</span>
-                                <div class="flex items-center mr-6">
-                                    <span class="text-2xl mr-2" role="img" aria-label="Yes">😊</span>
-                                    <input name="${radioGroupName}" type="radio" class="radio-custom" value="Yes">
-                                </div>
-                                <div class="flex items-center">
-                                    <span class="text-2xl mr-2" role="img" aria-label="No">😢</span>
-                                    <input name="${radioGroupName}" type="radio" class="radio-custom" value="No">
+                            <div class="p-2 rounded-md bg-gray-100">
+                                <div class="flex items-center flex-wrap gap-x-4 gap-y-2">
+                                    <span class="text-sm font-medium flex-shrink-0" style="color: var(--text-dark);">การปฏิบัติ:</span>
+                                    <div class="flex items-center">
+                                        <span class="text-xl mr-1" role="img" aria-label="Yes">😊</span>
+                                        <input name="${radioGroupName}" type="radio" class="radio-custom" value="Yes">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-xl mr-1" role="img" aria-label="No">😢</span>
+                                        <input name="${radioGroupName}" type="radio" class="radio-custom" value="No">
+                                    </div>
+                                    <div class="flex items-center">
+                                         <span class="text-base font-semibold text-gray-500 mr-1">N/A</span>
+                                        <input name="${radioGroupName}" type="radio" class="radio-custom" value="N/A">
+                                    </div>
                                 </div>
                             </div>
                             <div class="mt-3">
@@ -629,6 +724,14 @@
                             <button onclick="deselectPageRadios(${sectionIndex})" class="action-btn deselect-all-btn flex items-center justify-center">
                                 <span class="mr-2">😊</span> Deselect All
                             </button>
+                        </div>
+                        <div class="text-xs text-gray-500 mb-4">
+                            <span class="inline-flex items-center">😊 = ได้รับการประเมิน</span>
+                            <span class="inline-flex items-center mx-2">😢 = ไม่ได้รับการประเมิน</span>
+                            <span class="inline-flex items-center">
+                                <span class="font-semibold text-gray-500">N/A</span>
+                                = ไม่เกี่ยวข้อง/ ไม่สามารถประเมินได้
+                            </span>
                         </div>
                         <div>${itemsHtml}</div>
                     </div>`;
@@ -657,6 +760,7 @@
             const workplaceAlert = document.getElementById('workplace-alert');
             const prefixes = {
                 'RA4SP': 'RA',
+                'RA8IC': 'RA',
                 'SDNICU': 'SD',
                 'NICU CNMI': 'CN'
             };
@@ -688,6 +792,9 @@
             });
             
             infantNameInput.addEventListener('blur', (e) => fetchInfantData(e.target.value));
+            document.getElementById('ga-weeks-input').addEventListener('input', () => document.getElementById('ga-prompt-alert').classList.add('hidden'));
+            document.getElementById('ga-days-input').addEventListener('input', () => document.getElementById('ga-prompt-alert').classList.add('hidden'));
+            document.getElementById('dob-input').addEventListener('input', () => document.getElementById('dob-prompt-alert').classList.add('hidden'));
             document.getElementById('ga-weeks-input').addEventListener('input', updateCalculatedFields);
             document.getElementById('ga-days-input').addEventListener('input', updateCalculatedFields);
             document.getElementById('dob-input').addEventListener('change', updateCalculatedFields);
@@ -712,7 +819,7 @@
             window.scrollTo(0, 0);
             pages.forEach((page, index) => page.classList.toggle('active', index === pageIndex));
             updateNavigation();
-            if (pageIndex > 0 && pageIndex <= checklistData.length) {
+             if (pageIndex > 0 && pageIndex <= checklistData.length) {
                 const disablePopupToggle = document.getElementById('disable-popup-toggle');
                 if (disablePopupToggle && !disablePopupToggle.checked) {
                     const pageEl = pages[pageIndex];
@@ -846,6 +953,8 @@
             document.getElementById('infant-name-input').disabled = true;
             document.getElementById('infant-status-msg').textContent = '';
             document.getElementById('workplace-alert').classList.add('hidden');
+            document.getElementById('ga-prompt-alert').classList.add('hidden');
+            document.getElementById('dob-prompt-alert').classList.add('hidden');
             document.getElementById('ga-weeks-input').value = '';
             document.getElementById('ga-days-input').value = '';
             document.getElementById('dob-input').value = '';
@@ -855,10 +964,12 @@
             document.getElementById('assessment-date-input').valueAsDate = new Date();
             document.getElementById('age-display').textContent = '';
             document.getElementById('pma-display').textContent = '';
+            document.querySelectorAll('input[name="workplace"]').forEach(radio => radio.checked = false);
             document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
             document.querySelectorAll('input[type="text"][id^="note-"]').forEach(noteInput => noteInput.value = '');
             document.getElementById('disable-popup-toggle').checked = false;
             pages.forEach(page => page.dataset.detailsShown = '');
+            document.getElementById('update-btn-container').classList.add('hidden');
             updateCalculatedFields();
             goToFirstPage();
         }
@@ -1076,9 +1187,7 @@
             updateCalculatedFields(); // Rerun validation on the final combined text
         }
 
-        // --- UPDATED SUBMIT FUNCTION WITH NEW VALIDATIONS AND PROPER FETCH ---
         async function submitForm() {
-            // 1. Checklist Validation (Topics 1-10)
             const incompletePages = [];
             window.checklistData.forEach((section, sectionIndex) => {
                 let isPageComplete = true;
@@ -1087,27 +1196,25 @@
                     const selectedRadio = document.querySelector(`input[name="${radioGroupName}"]:checked`);
                     if (!selectedRadio) {
                         isPageComplete = false;
-                        break; // No need to check other items on this page
+                        break; 
                     }
                 }
                 if (!isPageComplete) {
-                    incompletePages.push(sectionIndex + 1); // Add human-readable topic number (1-10)
+                    incompletePages.push(sectionIndex + 1);
                 }
             });
 
             if (incompletePages.length > 0) {
                 showValidationModal(`กรุณาตรวจสอบหัวข้อที่ ${incompletePages.join(', ')} อีกครั้งค่ะ`);
-                return; // Stop submission
+                return;
             }
 
-            // 2. Workplace Validation
             const selectedWorkplace = document.querySelector('input[name="workplace"]:checked');
             if (!selectedWorkplace) {
                 showValidationModal('กรุณาเลือกหน่วยงานของท่านค่ะ');
-                return; // Stop submission
+                return;
             }
 
-            // If all validations pass, proceed with submission
             const submitButton = document.getElementById('submit-button');
             submitButton.disabled = true;
             submitButton.innerHTML = 'Submitting...';
@@ -1146,17 +1253,13 @@
                 formData.checklist.push(sectionData);
             });
 
-            // Use fetch to send data to the Google Apps Script Web App URL
             fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Use 'no-cors' to prevent CORS errors from Google Script redirects
-                headers: { 
-                    'Content-Type': 'application/json' 
-                },
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             })
             .then(() => {
-                // With 'no-cors', we can't read the response, so we assume success if the request doesn't throw an error.
                 console.log('Submission request sent to Google Sheet.');
                 document.getElementById('modal-header-text').textContent = "Form Submitted Successfully!";
                 const modalText = document.getElementById('modal-infant-name');
@@ -1181,6 +1284,8 @@
 
         function closeModal() {
             submitModal.classList.add('hidden');
+            resetForm();
+            document.getElementById('modal-header-text').textContent = "Form Submitted Successfully!";
         }
         okButton.addEventListener('click', closeModal);
 
@@ -1215,26 +1320,29 @@
 
         function closeDetailsModal() {
             detailsModal.classList.add('hidden');
-            window.scrollTo(0, 0); // Scroll to top
+            window.scrollTo(0, 0);
         }
         closeModalBtn.addEventListener('click', closeDetailsModal);
         detailsModal.addEventListener('click', (event) => {
             if (event.target === detailsModal) closeDetailsModal();
         });
 
-        // --- FETCH INFANT DATA FROM GOOGLE SHEETS ---
         async function fetchInfantData(infantName) {
             const statusMsgEl = document.getElementById('infant-status-msg');
+            const updateBtnContainer = document.getElementById('update-btn-container');
+
             if (!infantName || infantName.trim() === '') {
                 statusMsgEl.textContent = '';
+                updateBtnContainer.classList.add('hidden');
                 return;
             }
 
             const infantNameInput = document.getElementById('infant-name-input');
             infantNameInput.disabled = true;
-            infantNameInput.style.backgroundColor = '#f3f4f6'; // Gray out input
+            infantNameInput.style.backgroundColor = '#f3f4f6';
             statusMsgEl.textContent = 'Checking...';
             statusMsgEl.className = 'text-xs font-semibold text-blue-500';
+            updateBtnContainer.classList.add('hidden');
             
             const dxInput = document.getElementById('dx-input');
             const fetchUrl = `${APPS_SCRIPT_URL}?infantName=${encodeURIComponent(infantName)}`;
@@ -1248,8 +1356,11 @@
 
                 if (data && data.found) {
                     console.log("Found infant data in Google Sheets:", data);
-                    statusMsgEl.textContent = 'มีข้อมูล';
+                    statusMsgEl.textContent = 'มีข้อมูลเดิม';
                     statusMsgEl.className = 'text-xs font-semibold text-green-600';
+                    updateBtnContainer.classList.remove('hidden');
+                    document.getElementById('ga-prompt-alert').classList.add('hidden');
+                    document.getElementById('dob-prompt-alert').classList.add('hidden');
                     
                     document.getElementById('ga-weeks-input').value = data.gestationalAgeWeeks || '';
                     document.getElementById('ga-days-input').value = data.gestationalAgeDays || '';
@@ -1267,15 +1378,17 @@
 
                 } else {
                     console.log("No such infant in Google Sheets!");
-                    statusMsgEl.textContent = 'ไม่พบข้อมูล';
+                    statusMsgEl.textContent = 'ไม่พบข้อมูลเดิม';
                     statusMsgEl.className = 'text-xs font-semibold text-red-600';
+                    updateBtnContainer.classList.add('hidden');
 
-                    // Clear fields if no data is found
                     document.getElementById('ga-weeks-input').value = '';
                     document.getElementById('ga-days-input').value = '';
                     document.getElementById('dob-input').value = '';
                     dxInput.innerHTML = '';
                     lastAutoDx = '';
+                    document.getElementById('ga-prompt-alert').classList.remove('hidden');
+                    document.getElementById('dob-prompt-alert').classList.remove('hidden');
                     updateCalculatedFields();
                 }
             } catch (error) {
@@ -1285,13 +1398,106 @@
                 showValidationModal('Could not retrieve data. Please check the console.');
             } finally {
                 infantNameInput.disabled = false;
-                infantNameInput.style.backgroundColor = ''; // Restore input color
+                infantNameInput.style.backgroundColor = '';
             }
         }
 
-        // Initial setup when the page loads
+        async function updateInfantData() {
+            const infantName = document.getElementById('infant-name-input').value;
+            if (!infantName) {
+                showValidationModal('Infant name is required to update data.');
+                return;
+            }
+
+            const updatedData = {
+                action: 'update',
+                infantName: infantName,
+                gestationalAgeWeeks: document.getElementById('ga-weeks-input').value,
+                gestationalAgeDays: document.getElementById('ga-days-input').value,
+                dateOfBirth: document.getElementById('dob-input').value,
+                dx: document.getElementById('dx-input').innerText
+            };
+
+            const updateBtn = document.getElementById('update-btn');
+            const updateBtnText = updateBtn.querySelector('span');
+            const checkIcon = document.getElementById('update-check-icon');
+
+            updateBtn.disabled = true;
+            updateBtnText.textContent = 'Updating...';
+            updateBtn.classList.remove('bg-green-500');
+            updateBtn.classList.add('bg-blue-500');
+            checkIcon.classList.add('hidden');
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                console.log('Update request sent for:', infantName);
+                
+                updateBtn.classList.remove('bg-blue-500');
+                updateBtn.classList.add('bg-green-500');
+                updateBtnText.textContent = 'Updated';
+                checkIcon.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Error updating data:', error);
+                showValidationModal('Could not update data. Please check the console.');
+                updateBtnText.textContent = 'Update';
+            } finally {
+                updateBtn.disabled = false;
+                setTimeout(() => {
+                    updateBtnText.textContent = 'Update';
+                    updateBtn.classList.remove('bg-green-500');
+                    updateBtn.classList.add('bg-blue-500');
+                    checkIcon.classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        function showInfantNameInfo() {
+            document.getElementById('infant-name-info-modal').classList.remove('hidden');
+        }
+
+        function closeInfantNameInfo() {
+            document.getElementById('infant-name-info-modal').classList.add('hidden');
+        }
+
+        function showInfoModal(type) {
+            const modalTextEl = document.getElementById('generic-info-modal-text');
+            let content = '';
+            if (type === 'ga') {
+                content = 'หากต้องการแก้ไขข้อมูลอายุครรภ์และวันเดือนปีเกิด สามารถลบข้อมูลเดิมและแก้ไข จากนั้นจึงคลิกที่ปุ่ม <b class="text-blue-600">Update</b> เพื่อยืนยันการแก้ไขข้อมูล';
+            } else if (type === 'dx') {
+                content = 'ท่านสามารถลบและแก้ไขรายละเอียด Dx. ได้ (ส่วนของ GA และ PMA ปรากฎโดยอัตโนมัติ โดย PMA จะเปลี่ยนแปลงตามวันที่ประเมิน GA และวันเดือนปีเกิด) เมื่อแก้ไขเสร็จแล้วให้ตรวจสอบความถูกต้องอีกครั้งพร้อมคลิกที่ปุ่ม <b class="text-blue-600">Reset Dx.</b> จากนั้นจึงคลิกปุ่ม <b class="text-blue-600">Update</b> เพื่อยืนยันการแก้ไขข้อมูล';
+            }
+            modalTextEl.innerHTML = content;
+            document.getElementById('generic-info-modal').classList.remove('hidden');
+        }
+
+        function closeInfoModal() {
+            document.getElementById('generic-info-modal').classList.add('hidden');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
              buildPages();
+             // Add event listeners for the info modals
+             document.getElementById('info-modal-close-btn').addEventListener('click', closeInfantNameInfo);
+             document.getElementById('infant-name-info-modal').addEventListener('click', (event) => {
+                if (event.target === document.getElementById('infant-name-info-modal')) {
+                    closeInfantNameInfo();
+                }
+             });
+
+             document.getElementById('generic-info-modal-close-btn').addEventListener('click', closeInfoModal);
+             document.getElementById('generic-info-modal').addEventListener('click', (event) => {
+                if (event.target === document.getElementById('generic-info-modal')) {
+                    closeInfoModal();
+                }
+             });
         });
     </script>
 
