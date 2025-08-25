@@ -296,7 +296,7 @@
     <!-- SCRIPT SECTION -->
     <script type="module">
         // --- IMPORTANT: PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT URL HERE ---
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHnrxb4oFzNjzyYl9P3W2EmCpsOgdyZP9_nW5fPnxbS6CeJgyHqos-6D1MU3o5ruHS/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzu6B6ZDo_2NEqFFfTDvWho8iH073L5ldktvUVA_7ZE2IEUgWZ7RWxCD44T39S6Gnec/exec';
 
         // --- YOUR EXISTING APP DATA AND LOGIC ---
         const checklistData = [
@@ -564,9 +564,9 @@
                 <div class="p-4 sm:p-8">
                     <div class="flex justify-between items-center mb-4">
                          <label class="flex items-center text-sm p-2 rounded-md bg-pink-100 text-pink-700 cursor-pointer">
-                             <input type="checkbox" id="disable-popup-toggle" class="mr-2 radio-custom" style="transform: scale(1.2);">
-                             Turn off pop-up page
-                         </label>
+                            <input type="checkbox" id="disable-popup-toggle" class="mr-2 radio-custom" style="transform: scale(1.2);">
+                            Turn off pop-up page
+                        </label>
                         <button onclick="resetForm()" class="text-sm font-normal p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors shadow-sm">Reset Form</button>
                     </div>
                     <header class="text-center mb-8 p-4 rounded-lg" style="background-color: #E0FAED; border: 2px dashed white;">
@@ -840,14 +840,14 @@
             pages.forEach((page, index) => page.classList.toggle('active', index === pageIndex));
             updateNavigation();
              if (pageIndex > 0 && pageIndex <= checklistData.length) {
-                  const disablePopupToggle = document.getElementById('disable-popup-toggle');
-                  if (disablePopupToggle && !disablePopupToggle.checked) {
-                      const pageEl = pages[pageIndex];
-                      if (!pageEl.dataset.detailsShown) {
-                          showDetails(window.checklistData[pageIndex - 1]);
-                          pageEl.dataset.detailsShown = 'true';
-                      }
-                  }
+                 const disablePopupToggle = document.getElementById('disable-popup-toggle');
+                 if (disablePopupToggle && !disablePopupToggle.checked) {
+                     const pageEl = pages[pageIndex];
+                     if (!pageEl.dataset.detailsShown) {
+                         showDetails(window.checklistData[pageIndex - 1]);
+                         pageEl.dataset.detailsShown = 'true';
+                     }
+                 }
              }
         }
 
@@ -1133,7 +1133,7 @@
                      if (dxInput.innerHTML.trim() === lastAutoDx) {
                          dxInput.innerHTML = '';
                          lastAutoDx = '';
-                     }
+                      }
                 }
 
             } else {
@@ -1257,7 +1257,6 @@
             const fullDx = document.getElementById('dx-input').innerText;
             
             const formData = {
-                action: 'submit', // <-- CRITICAL: This tells the script it's a full submission.
                 infantName: infantName,
                 assessmentDate: document.getElementById('assessment-date-input').value,
                 gestationalAgeWeeksInput: gaWeeks,
@@ -1442,7 +1441,7 @@
             }
 
             const updatedData = {
-                action: 'update', // <-- CRITICAL: This tells the script it's just an update.
+                action: 'update',
                 infantName: infantName,
                 gestationalAgeWeeks: document.getElementById('ga-weeks-input').value,
                 gestationalAgeDays: document.getElementById('ga-days-input').value,
@@ -1535,3 +1534,5 @@
 
 </body>
 </html>
+
+
